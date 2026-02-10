@@ -1,17 +1,7 @@
 import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -25,4 +15,31 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/** A survey session — each "class check-in" gets a unique session with its own link */
+export const surveySessions = mysqlTable("survey_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Short unique code used in the shareable URL, e.g. /s/abc123 */
+  code: varchar("code", { length: 32 }).notNull().unique(),
+  /** Human-readable label the teacher can set, e.g. "Monday 9am class" */
+  label: varchar("label", { length: 255 }),
+  /** Whether the session is currently accepting submissions */
+  isActive: int("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SurveySession = typeof surveySessions.$inferSelect;
+export type InsertSurveySession = typeof surveySessions.$inferInsert;
+
+/** Individual student submissions */
+export const submissions = mysqlTable("submissions", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(),
+  studentName: varchar("studentName", { length: 255 }).notNull(),
+  emoji: varchar("emoji", { length: 32 }).notNull(),
+  rating: int("rating").notNull(),
+  ipAddress: varchar("ipAddress", { length: 64 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Submission = typeof submissions.$inferSelect;
+export type InsertSubmission = typeof submissions.$inferInsert;

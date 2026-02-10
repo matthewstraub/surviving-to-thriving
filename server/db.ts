@@ -1,11 +1,19 @@
-import { eq } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import {
+  InsertUser,
+  users,
+  surveySessions,
+  submissions,
+  type InsertSurveySession,
+  type InsertSubmission,
+  type SurveySession,
+  type Submission,
+} from "../drizzle/schema";
+import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -56,8 +64,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      values.role = "admin";
+      updateSet.role = "admin";
     }
 
     if (!values.lastSignedIn) {
@@ -84,9 +92,121 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, openId))
+    .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ─── Survey Session helpers ─────────────────────────────────────────
+
+export async function createSession(
+  data: InsertSurveySession
+): Promise<SurveySession> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.insert(surveySessions).values(data);
+  const [row] = await db
+    .select()
+    .from(surveySessions)
+    .where(eq(surveySessions.code, data.code!))
+    .limit(1);
+  return row;
+}
+
+export async function getSessionByCode(
+  code: string
+): Promise<SurveySession | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const [row] = await db
+    .select()
+    .from(surveySessions)
+    .where(eq(surveySessions.code, code))
+    .limit(1);
+  return row;
+}
+
+export async function listSessions(): Promise<SurveySession[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db
+    .select()
+    .from(surveySessions)
+    .orderBy(desc(surveySessions.createdAt));
+}
+
+export async function deactivateSession(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db
+    .update(surveySessions)
+    .set({ isActive: 0 })
+    .where(eq(surveySessions.id, id));
+}
+
+export async function activateSession(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db
+    .update(surveySessions)
+    .set({ isActive: 1 })
+    .where(eq(surveySessions.id, id));
+}
+
+// ─── Submission helpers ─────────────────────────────────────────────
+
+export async function addSubmission(
+  data: InsertSubmission
+): Promise<Submission> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const [result] = await db.insert(submissions).values(data).$returningId();
+  const [row] = await db
+    .select()
+    .from(submissions)
+    .where(eq(submissions.id, result.id))
+    .limit(1);
+  return row;
+}
+
+export async function getSubmissionsBySession(
+  sessionId: number
+): Promise<Submission[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db
+    .select()
+    .from(submissions)
+    .where(eq(submissions.sessionId, sessionId))
+    .orderBy(desc(submissions.createdAt));
+}
+
+export async function clearSubmissionsBySession(
+  sessionId: number
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db
+    .delete(submissions)
+    .where(eq(submissions.sessionId, sessionId));
+}
+
+export async function deleteSession(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.delete(submissions).where(eq(submissions.sessionId, id));
+  await db.delete(surveySessions).where(eq(surveySessions.id, id));
+}

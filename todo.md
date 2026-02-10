@@ -1,0 +1,21 @@
+# Project TODO
+
+- [x] Database schema for submissions (name, emoji, rating, IP, timestamp, sessionId)
+- [x] Database schema for survey sessions (unique link per survey)
+- [x] Backend API: create new survey session
+- [x] Backend API: submit student response
+- [x] Backend API: get all submissions for a session
+- [x] Backend API: reset/clear submissions
+- [x] Backend API: teacher authentication (password-protected)
+- [x] WebSocket real-time push of new submissions to teacher dashboard
+- [x] Student submission page with name input, 1-10 slider, emoji picker
+- [x] Student page accessible via unique shareable link per session
+- [x] QR code generation for student access link
+- [x] Teacher dashboard showing all submissions as line items
+- [x] Real-time group average calculation display
+- [x] Outlier detection and highlighting
+- [x] Manual reset button on teacher dashboard
+- [x] Password protection for teacher dashboard
+- [x] MMM-inspired branding and elegant styling
+- [x] Notification to teacher for extreme outliers
+- [x] Vitest tests for backend procedures

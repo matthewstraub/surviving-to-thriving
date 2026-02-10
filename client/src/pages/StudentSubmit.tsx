@@ -1,0 +1,316 @@
+import { useState, useMemo } from "react";
+import { useParams } from "wouter";
+import { trpc } from "@/lib/trpc";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
+import { toast } from "sonner";
+import { CheckCircle2, Loader2, AlertTriangle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const EMOJI_OPTIONS = [
+  "😫", "😰", "😟", "😐", "🙂", "😊", "😄", "🤩", "🌟", "🔥",
+  "💪", "🎉", "❤️", "🧘", "☕", "📚", "🎯", "🚀", "🌈", "✨",
+  "😴", "🤔", "😅", "🥺", "😤", "🫠", "🙃", "💀", "🫡", "🤗",
+];
+
+const SCALE_LABELS: Record<number, string> = {
+  1: "Barely surviving",
+  2: "Really struggling",
+  3: "Having a tough time",
+  4: "Below average",
+  5: "Getting by",
+  6: "Doing okay",
+  7: "Feeling good",
+  8: "Doing great",
+  9: "Really thriving",
+  10: "Absolutely thriving!",
+};
+
+function getScaleColor(rating: number): string {
+  if (rating <= 2) return "rgb(220, 60, 60)";
+  if (rating <= 4) return "rgb(230, 140, 50)";
+  if (rating <= 6) return "rgb(200, 180, 50)";
+  if (rating <= 8) return "rgb(80, 170, 80)";
+  return "rgb(30, 140, 100)";
+}
+
+export default function StudentSubmit() {
+  const params = useParams<{ code: string }>();
+  const code = params.code || "";
+
+  const [studentName, setStudentName] = useState("");
+  const [selectedEmoji, setSelectedEmoji] = useState("");
+  const [rating, setRating] = useState(5);
+  const [submitted, setSubmitted] = useState(false);
+
+  const sessionQuery = trpc.session.getByCode.useQuery(
+    { code },
+    { enabled: !!code, retry: false }
+  );
+
+  const submitMutation = trpc.submission.submit.useMutation({
+    onSuccess: () => {
+      setSubmitted(true);
+      toast.success("Response submitted!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to submit");
+    },
+  });
+
+  const canSubmit = useMemo(
+    () => studentName.trim().length > 0 && selectedEmoji !== "",
+    [studentName, selectedEmoji]
+  );
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    submitMutation.mutate({
+      sessionCode: code,
+      studentName: studentName.trim(),
+      emoji: selectedEmoji,
+      rating,
+    });
+  };
+
+  // Error state
+  if (sessionQuery.error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-8 pb-8 text-center">
+            <AlertTriangle className="mx-auto h-12 w-12 text-destructive mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Survey Not Found</h2>
+            <p className="text-muted-foreground">
+              This survey link is invalid or has expired. Please check with your instructor for the correct link.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (sessionQuery.isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const session = sessionQuery.data;
+
+  // Session closed
+  if (session && !session.isActive) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-8 pb-8 text-center">
+            <AlertTriangle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Survey Closed</h2>
+            <p className="text-muted-foreground">
+              This check-in session is no longer accepting responses.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Success state
+  if (submitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", duration: 0.5 }}
+        >
+          <Card className="max-w-md w-full shadow-lg border-0">
+            <CardContent className="pt-10 pb-10 text-center">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+              >
+                <CheckCircle2 className="mx-auto h-16 w-16 text-chart-4 mb-4" />
+              </motion.div>
+              <h2 className="text-2xl font-serif font-bold text-foreground mb-2">
+                Thank You!
+              </h2>
+              <p className="text-muted-foreground text-lg mb-4">
+                Your check-in has been recorded.
+              </p>
+              <div className="text-5xl mb-2">{selectedEmoji}</div>
+              <p className="text-muted-foreground">
+                {studentName} &middot; {rating}/10
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-primary text-primary-foreground py-6 px-4">
+        <div className="max-w-lg mx-auto text-center">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight">
+            Surviving to Thriving
+          </h1>
+          {session?.label && (
+            <p className="mt-1 text-primary-foreground/80 text-sm">
+              {session.label}
+            </p>
+          )}
+          <p className="mt-2 text-primary-foreground/70 text-sm">
+            How are you doing today? Share honestly — your response is anonymous to classmates.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+        {/* Name */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Your Name
+          </label>
+          <Input
+            placeholder="Enter your first name"
+            value={studentName}
+            onChange={(e) => setStudentName(e.target.value)}
+            className="h-12 text-base bg-card"
+            maxLength={100}
+          />
+        </motion.div>
+
+        {/* Rating Slider */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <label className="block text-sm font-medium text-foreground mb-3">
+            How are you feeling? <span className="text-muted-foreground font-normal">({rating}/10)</span>
+          </label>
+
+          <div className="bg-card rounded-xl p-5 border shadow-sm">
+            <div className="flex justify-between text-xs text-muted-foreground mb-4 px-1">
+              <span className="font-medium" style={{ color: "rgb(220, 60, 60)" }}>Surviving</span>
+              <span className="font-medium" style={{ color: "rgb(30, 140, 100)" }}>Thriving</span>
+            </div>
+
+            <Slider
+              value={[rating]}
+              onValueChange={(v) => setRating(v[0])}
+              min={1}
+              max={10}
+              step={1}
+              className="mb-4"
+            />
+
+            <div className="flex justify-between text-xs text-muted-foreground px-0.5">
+              {Array.from({ length: 10 }, (_, i) => (
+                <span
+                  key={i + 1}
+                  className={`w-5 text-center transition-all ${
+                    rating === i + 1 ? "font-bold text-foreground scale-125" : ""
+                  }`}
+                >
+                  {i + 1}
+                </span>
+              ))}
+            </div>
+
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={rating}
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 5 }}
+                className="text-center mt-4 text-sm font-medium"
+                style={{ color: getScaleColor(rating) }}
+              >
+                {SCALE_LABELS[rating]}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+        {/* Emoji Picker */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Pick an emoji that represents how you feel
+          </label>
+          <div className="bg-card rounded-xl p-4 border shadow-sm">
+            <div className="grid grid-cols-10 gap-1.5 sm:gap-2">
+              {EMOJI_OPTIONS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => setSelectedEmoji(emoji)}
+                  className={`text-xl sm:text-2xl p-1.5 sm:p-2 rounded-lg transition-all hover:bg-accent ${
+                    selectedEmoji === emoji
+                      ? "bg-primary/10 ring-2 ring-primary scale-110 shadow-sm"
+                      : "hover:scale-105"
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            {selectedEmoji && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center mt-3 text-sm text-muted-foreground"
+              >
+                Selected: <span className="text-2xl">{selectedEmoji}</span>
+              </motion.p>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Submit */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Button
+            onClick={handleSubmit}
+            disabled={!canSubmit || submitMutation.isPending}
+            className="w-full h-12 text-base font-semibold shadow-md"
+            size="lg"
+          >
+            {submitMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              "Submit Check-In"
+            )}
+          </Button>
+          {!canSubmit && (
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Please enter your name and select an emoji
+            </p>
+          )}
+        </motion.div>
+      </div>
+    </div>
+  );
+}
