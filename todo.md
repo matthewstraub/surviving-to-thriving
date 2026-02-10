@@ -20,3 +20,4 @@
 - [x] Notification to teacher for extreme outliers
 - [x] Vitest tests for backend procedures
 - [x] Replace limited emoji grid with full searchable emoji picker
+- [x] Fix emoji picker to fill full width of parent card on mobile

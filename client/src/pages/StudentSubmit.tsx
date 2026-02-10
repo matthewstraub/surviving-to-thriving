@@ -102,20 +102,32 @@ function EmojiPickerSection({
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="flex justify-center [&>em-emoji-picker]:w-full [&>em-emoji-picker]:max-w-full">
-              <Picker
-                data={data}
-                onEmojiSelect={handleEmojiSelect}
-                theme="light"
-                set="native"
-                previewPosition="none"
-                skinTonePosition="search"
-                maxFrequentRows={2}
-                perLine={8}
-                searchPosition="sticky"
-                navPosition="bottom"
-                dynamicWidth={true}
-              />
+            <div className="w-full" style={{ display: "flex", justifyContent: "center" }}>
+              <div className="w-full" ref={(el) => {
+                // emoji-mart renders as a web component with shadow DOM;
+                // dynamicWidth alone doesn't always fill the parent.
+                if (el) {
+                  const em = el.querySelector('em-emoji-picker') as HTMLElement | null;
+                  if (em) {
+                    em.style.width = '100%';
+                    em.style.maxWidth = '100%';
+                  }
+                }
+              }}>
+                <Picker
+                  data={data}
+                  onEmojiSelect={handleEmojiSelect}
+                  theme="light"
+                  set="native"
+                  previewPosition="none"
+                  skinTonePosition="search"
+                  maxFrequentRows={2}
+                  perLine={8}
+                  searchPosition="sticky"
+                  navPosition="bottom"
+                  dynamicWidth={true}
+                />
+              </div>
             </div>
           </motion.div>
         )}

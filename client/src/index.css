@@ -109,6 +109,13 @@
   }
 }
 
+/* Force emoji-mart picker to fill parent width on all screen sizes */
+em-emoji-picker {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
 @layer components {
   .container {
     width: 100%;
