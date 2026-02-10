@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -6,14 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
-import { CheckCircle2, Loader2, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Loader2, AlertTriangle, SmilePlus, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const EMOJI_OPTIONS = [
-  "😫", "😰", "😟", "😐", "🙂", "😊", "😄", "🤩", "🌟", "🔥",
-  "💪", "🎉", "❤️", "🧘", "☕", "📚", "🎯", "🚀", "🌈", "✨",
-  "😴", "🤔", "😅", "🥺", "😤", "🫠", "🙃", "💀", "🫡", "🤗",
-];
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 
 const SCALE_LABELS: Record<number, string> = {
   1: "Barely surviving",
@@ -34,6 +30,98 @@ function getScaleColor(rating: number): string {
   if (rating <= 6) return "rgb(200, 180, 50)";
   if (rating <= 8) return "rgb(80, 170, 80)";
   return "rgb(30, 140, 100)";
+}
+
+function EmojiPickerSection({
+  selectedEmoji,
+  onSelect,
+}: {
+  selectedEmoji: string;
+  onSelect: (emoji: string) => void;
+}) {
+  const [showPicker, setShowPicker] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  // Close picker when clicking outside
+  useEffect(() => {
+    if (!showPicker) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showPicker]);
+
+  const handleEmojiSelect = (emoji: any) => {
+    onSelect(emoji.native);
+    setShowPicker(false);
+  };
+
+  return (
+    <div className="bg-card rounded-xl p-4 border shadow-sm">
+      {/* Selected emoji display / trigger button */}
+      <div className="flex items-center justify-center gap-3">
+        {selectedEmoji ? (
+          <button
+            onClick={() => setShowPicker(!showPicker)}
+            className="flex items-center gap-3 px-5 py-3 rounded-xl border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all group"
+          >
+            <span className="text-4xl">{selectedEmoji}</span>
+            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+              Tap to change
+            </span>
+          </button>
+        ) : (
+          <button
+            onClick={() => setShowPicker(!showPicker)}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-accent transition-all text-muted-foreground hover:text-foreground"
+          >
+            <SmilePlus className="h-6 w-6" />
+            <span className="text-sm font-medium">Search & pick an emoji</span>
+          </button>
+        )}
+      </div>
+
+      {/* Emoji Mart Picker */}
+      <AnimatePresence>
+        {showPicker && (
+          <motion.div
+            ref={pickerRef}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-4 overflow-hidden"
+          >
+            <div className="flex justify-end mb-1">
+              <button
+                onClick={() => setShowPicker(false)}
+                className="p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex justify-center [&>em-emoji-picker]:w-full [&>em-emoji-picker]:max-w-full">
+              <Picker
+                data={data}
+                onEmojiSelect={handleEmojiSelect}
+                theme="light"
+                set="native"
+                previewPosition="none"
+                skinTonePosition="search"
+                maxFrequentRows={2}
+                perLine={8}
+                searchPosition="sticky"
+                navPosition="bottom"
+                dynamicWidth={true}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 export default function StudentSubmit() {
@@ -255,32 +343,10 @@ export default function StudentSubmit() {
           <label className="block text-sm font-medium text-foreground mb-2">
             Pick an emoji that represents how you feel
           </label>
-          <div className="bg-card rounded-xl p-4 border shadow-sm">
-            <div className="grid grid-cols-10 gap-1.5 sm:gap-2">
-              {EMOJI_OPTIONS.map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() => setSelectedEmoji(emoji)}
-                  className={`text-xl sm:text-2xl p-1.5 sm:p-2 rounded-lg transition-all hover:bg-accent ${
-                    selectedEmoji === emoji
-                      ? "bg-primary/10 ring-2 ring-primary scale-110 shadow-sm"
-                      : "hover:scale-105"
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-            {selectedEmoji && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center mt-3 text-sm text-muted-foreground"
-              >
-                Selected: <span className="text-2xl">{selectedEmoji}</span>
-              </motion.p>
-            )}
-          </div>
+          <EmojiPickerSection
+            selectedEmoji={selectedEmoji}
+            onSelect={setSelectedEmoji}
+          />
         </motion.div>
 
         {/* Submit */}

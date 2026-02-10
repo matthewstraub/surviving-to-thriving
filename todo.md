@@ -19,3 +19,4 @@
 - [x] MMM-inspired branding and elegant styling
 - [x] Notification to teacher for extreme outliers
 - [x] Vitest tests for backend procedures
+- [x] Replace limited emoji grid with full searchable emoji picker
