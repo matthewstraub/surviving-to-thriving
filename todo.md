@@ -21,3 +21,4 @@
 - [x] Vitest tests for backend procedures
 - [x] Replace limited emoji grid with full searchable emoji picker
 - [x] Fix emoji picker to fill full width of parent card on mobile
+- [x] Prepare project for Render deployment (config files, env guide, database setup)
