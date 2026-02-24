@@ -20,12 +20,12 @@ The application follows a monolithic full-stack architecture where the frontend 
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    Render (Free Tier)                │
+│                    Render (Free Tier)               │
 │                                                     │
-│  ┌──────────────┐   ┌──────────────┐   ┌────────┐  │
-│  │  React SPA   │   │  Express +   │   │ Socket │  │
-│  │  (Vite build)│◄──│  tRPC API    │──►│  .io   │  │
-│  └──────────────┘   └──────┬───────┘   └────────┘  │
+│  ┌──────────────┐   ┌──────────────┐   ┌────────┐   │
+│  │  React SPA   │   │  Express +   │   │ Socket │   │
+│  │  (Vite build)│◄──│  tRPC API    │──►│  .io   │   │
+│  └──────────────┘   └──────┬───────┘   └────────┘   │
 │                            │                        │
 └────────────────────────────┼────────────────────────┘
                              │ MySQL protocol (SSL)
