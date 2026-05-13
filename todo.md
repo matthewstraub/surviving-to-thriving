@@ -23,3 +23,4 @@
 - [x] Fix emoji picker to fill full width of parent card on mobile
 - [x] Prepare project for Render deployment (config files, env guide, database setup)
 - [x] Write comprehensive documentation about app architecture, tools, and maintenance
+- [x] Update emoji picker data to include the latest emojis

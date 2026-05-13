@@ -126,6 +126,7 @@ function EmojiPickerSection({
                   searchPosition="sticky"
                   navPosition="bottom"
                   dynamicWidth={true}
+                  emojiVersion={15}
                 />
               </div>
             </div>
