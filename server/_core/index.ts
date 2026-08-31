@@ -29,6 +29,15 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Local development against the in-memory store — never engages in production.
+  if (process.env.USE_MEMORY_DB === "1" && process.env.NODE_ENV !== "production") {
+    const { seedMemoryDb } = await import("../memoryDb");
+    await seedMemoryDb();
+    console.log(
+      "[Database] In-memory store active with demo data — no external database in use."
+    );
+  }
+
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads

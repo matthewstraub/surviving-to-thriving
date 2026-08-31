@@ -11,6 +11,15 @@ import {
   type Submission,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import * as memoryDb from "./memoryDb";
+
+/**
+ * Local-development escape hatch: serve every query from an in-memory store so the
+ * app runs with no database at all. Double-guarded so it can never engage in
+ * production, where Render sets NODE_ENV=production.
+ */
+const USE_MEMORY_DB =
+  process.env.USE_MEMORY_DB === "1" && process.env.NODE_ENV !== "production";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -106,6 +115,8 @@ export async function getUserByOpenId(openId: string) {
 export async function createSession(
   data: InsertSurveySession
 ): Promise<SurveySession> {
+  if (USE_MEMORY_DB) return memoryDb.createSession(data);
+
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -121,6 +132,8 @@ export async function createSession(
 export async function getSessionByCode(
   code: string
 ): Promise<SurveySession | undefined> {
+  if (USE_MEMORY_DB) return memoryDb.getSessionByCode(code);
+
   const db = await getDb();
   if (!db) return undefined;
 
@@ -133,6 +146,8 @@ export async function getSessionByCode(
 }
 
 export async function listSessions(): Promise<SurveySession[]> {
+  if (USE_MEMORY_DB) return memoryDb.listSessions();
+
   const db = await getDb();
   if (!db) return [];
 
@@ -143,6 +158,8 @@ export async function listSessions(): Promise<SurveySession[]> {
 }
 
 export async function deactivateSession(id: number): Promise<void> {
+  if (USE_MEMORY_DB) return memoryDb.deactivateSession(id);
+
   const db = await getDb();
   if (!db) return;
 
@@ -153,6 +170,8 @@ export async function deactivateSession(id: number): Promise<void> {
 }
 
 export async function activateSession(id: number): Promise<void> {
+  if (USE_MEMORY_DB) return memoryDb.activateSession(id);
+
   const db = await getDb();
   if (!db) return;
 
@@ -167,6 +186,8 @@ export async function activateSession(id: number): Promise<void> {
 export async function addSubmission(
   data: InsertSubmission
 ): Promise<Submission> {
+  if (USE_MEMORY_DB) return memoryDb.addSubmission(data);
+
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -182,6 +203,8 @@ export async function addSubmission(
 export async function getSubmissionsBySession(
   sessionId: number
 ): Promise<Submission[]> {
+  if (USE_MEMORY_DB) return memoryDb.getSubmissionsBySession(sessionId);
+
   const db = await getDb();
   if (!db) return [];
 
@@ -195,6 +218,8 @@ export async function getSubmissionsBySession(
 export async function clearSubmissionsBySession(
   sessionId: number
 ): Promise<void> {
+  if (USE_MEMORY_DB) return memoryDb.clearSubmissionsBySession(sessionId);
+
   const db = await getDb();
   if (!db) return;
 
@@ -204,6 +229,8 @@ export async function clearSubmissionsBySession(
 }
 
 export async function deleteSession(id: number): Promise<void> {
+  if (USE_MEMORY_DB) return memoryDb.deleteSession(id);
+
   const db = await getDb();
   if (!db) return;
 
