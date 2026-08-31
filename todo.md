@@ -24,3 +24,5 @@
 - [x] Prepare project for Render deployment (config files, env guide, database setup)
 - [x] Write comprehensive documentation about app architecture, tools, and maintenance
 - [x] Update emoji picker data to include the latest emojis
+- [x] Make the test suite run offline without touching the production database
+- [x] Rebrand from Marymount Manhattan blue to Northeastern's official palette and typography

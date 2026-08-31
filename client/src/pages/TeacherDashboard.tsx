@@ -61,7 +61,7 @@ function QRCodeDisplay({
     QRCode.toDataURL(url, {
       width: 300,
       margin: 2,
-      color: { dark: "#0033A0", light: "#ffffff" },
+      color: { dark: "#1e2028", light: "#ffffff" },
     }).then(setQrDataUrl);
   }, [url]);
 
@@ -415,13 +415,13 @@ export default function TeacherDashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-primary text-primary-foreground">
+      <div className="bg-nu-ink text-white">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-serif font-bold">
               Surviving to Thriving
             </h1>
-            <p className="text-xs text-primary-foreground/70">
+            <p className="text-xs text-white/70">
               Teacher Dashboard
             </p>
           </div>
@@ -429,7 +429,7 @@ export default function TeacherDashboard() {
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            className="text-white/80 hover:text-white hover:bg-white/10"
           >
             <LogOut className="h-4 w-4 mr-1" />
             Sign Out

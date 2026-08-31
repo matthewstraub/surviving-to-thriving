@@ -244,17 +244,17 @@ export default function StudentSubmit() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-primary text-primary-foreground py-6 px-4">
+      <div className="bg-nu-ink text-white py-6 px-4">
         <div className="max-w-lg mx-auto text-center">
           <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight">
             Surviving to Thriving
           </h1>
           {session?.label && (
-            <p className="mt-1 text-primary-foreground/80 text-sm">
+            <p className="mt-1 text-white/80 text-sm">
               {session.label}
             </p>
           )}
-          <p className="mt-2 text-primary-foreground/70 text-sm">
+          <p className="mt-2 text-white/70 text-sm">
             How are you doing today? Share honestly — your response is anonymous to classmates.
           </p>
         </div>
@@ -295,13 +295,16 @@ export default function StudentSubmit() {
               <span className="font-medium" style={{ color: SCALE_THRIVING }}>Thriving</span>
             </div>
 
+            {/* The filled track follows the rating's own scale color rather than the
+                brand accent, so a 9/10 does not read as an alarming red bar. */}
             <Slider
               value={[rating]}
               onValueChange={(v) => setRating(v[0])}
               min={1}
               max={10}
               step={1}
-              className="mb-4"
+              style={{ "--scale-fill": getScaleColor(rating) } as React.CSSProperties}
+              className="mb-4 [&_[data-slot=slider-range]]:bg-[var(--scale-fill)] [&_[data-slot=slider-thumb]]:border-[var(--scale-fill)]"
             />
 
             <div className="flex justify-between text-xs text-muted-foreground px-0.5">

@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Lato", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "DM Serif Display", ui-serif, Georgia, serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -42,51 +42,54 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  /* MMM brand custom colors */
-  --color-mmm-blue: oklch(0.35 0.18 264);
-  --color-mmm-blue-light: oklch(0.50 0.16 264);
-  --color-mmm-gold: oklch(0.80 0.16 85);
-  --color-mmm-navy: oklch(0.20 0.10 264);
-  --color-surviving: oklch(0.65 0.20 25);
-  --color-thriving: oklch(0.65 0.20 155);
+  /* Northeastern brand colors — see brand.northeastern.edu.
+     NU Red is #C8102E; the widely-circulated #D41B2C is not official. */
+  --color-nu-red: oklch(0.530 0.207 22.3);        /* #C8102E */
+  --color-nu-ink: oklch(0.245 0.016 274.2);       /* #1e2028  NU Cool Black */
+  --color-nu-canvas: oklch(0.973 0.003 106.4);    /* #F6F6F4  NU Canvas */
+  --color-nu-gold: oklch(0.623 0.084 76.3);       /* #A4804A  reserve for accents */
+  /* Scale endpoints, kept in sync with client/src/lib/scale.ts */
+  --color-surviving: oklch(0.596 0.197 25.5);     /* #dc3c3c */
+  --color-thriving: oklch(0.570 0.114 163.1);     /* #1e8c64 */
 }
 
 :root {
   --radius: 0.75rem;
-  /* MMM Blue primary palette */
-  --primary: oklch(0.35 0.18 264);
-  --primary-foreground: oklch(0.98 0 0);
-  /* Warm light background */
-  --background: oklch(0.985 0.005 264);
-  --foreground: oklch(0.18 0.03 264);
+  /* Northeastern red — reinforcing accent for actions, icons and focus */
+  --primary: oklch(0.530 0.207 22.3);
+  --primary-foreground: oklch(1 0 0);
+  /* NU Canvas rather than pure white, per brand guidance on visual vibration */
+  --background: oklch(0.973 0.003 106.4);
+  --foreground: oklch(0.245 0.016 274.2);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.03 264);
+  --card-foreground: oklch(0.245 0.016 274.2);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.03 264);
-  --secondary: oklch(0.95 0.01 264);
-  --secondary-foreground: oklch(0.30 0.06 264);
-  --muted: oklch(0.96 0.008 264);
-  --muted-foreground: oklch(0.50 0.03 264);
-  --accent: oklch(0.95 0.015 264);
-  --accent-foreground: oklch(0.25 0.08 264);
-  --destructive: oklch(0.58 0.24 27);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.92 0.01 264);
-  --input: oklch(0.92 0.01 264);
-  --ring: oklch(0.45 0.18 264);
-  --chart-1: oklch(0.35 0.18 264);
-  --chart-2: oklch(0.50 0.16 264);
-  --chart-3: oklch(0.80 0.16 85);
-  --chart-4: oklch(0.65 0.20 155);
-  --chart-5: oklch(0.65 0.20 25);
-  --sidebar: oklch(0.98 0.005 264);
-  --sidebar-foreground: oklch(0.18 0.03 264);
-  --sidebar-primary: oklch(0.35 0.18 264);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.95 0.015 264);
-  --sidebar-accent-foreground: oklch(0.25 0.08 264);
-  --sidebar-border: oklch(0.92 0.01 264);
-  --sidebar-ring: oklch(0.45 0.18 264);
+  --popover-foreground: oklch(0.245 0.016 274.2);
+  --secondary: oklch(0.940 0 0);
+  --secondary-foreground: oklch(0.245 0.016 274.2);
+  --muted: oklch(0.970 0 0);
+  --muted-foreground: oklch(0.407 0.007 286.1);
+  --accent: oklch(0.955 0.010 22.3);
+  --accent-foreground: oklch(0.245 0.016 274.2);
+  /* Deeper than NU Red so destructive actions stay distinct from primary ones */
+  --destructive: oklch(0.440 0.185 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.907 0 0);
+  --input: oklch(0.907 0 0);
+  --ring: oklch(0.530 0.207 22.3);
+  --chart-1: oklch(0.530 0.207 22.3);
+  --chart-2: oklch(0.407 0.007 286.1);
+  --chart-3: oklch(0.623 0.084 76.3);
+  --chart-4: oklch(0.570 0.114 163.1);
+  --chart-5: oklch(0.623 0.084 76.3);
+  --sidebar: oklch(0.973 0.003 106.4);
+  --sidebar-foreground: oklch(0.245 0.016 274.2);
+  --sidebar-primary: oklch(0.530 0.207 22.3);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.955 0.010 22.3);
+  --sidebar-accent-foreground: oklch(0.245 0.016 274.2);
+  --sidebar-border: oklch(0.907 0 0);
+  --sidebar-ring: oklch(0.530 0.207 22.3);
 }
 
 @layer base {
