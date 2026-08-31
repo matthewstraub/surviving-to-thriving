@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import QRCode from "qrcode";
+import { getScaleColor, getScaleGradient } from "@/lib/scale";
 
 type Submission = {
   id: number;
@@ -45,18 +46,6 @@ type Submission = {
   ipAddress: string | null;
   createdAt: Date;
 };
-
-function getScaleColor(rating: number): string {
-  if (rating <= 2) return "#dc3c3c";
-  if (rating <= 4) return "#e68c32";
-  if (rating <= 6) return "#c8b432";
-  if (rating <= 8) return "#50aa50";
-  return "#1e8c64";
-}
-
-function getScaleGradient(): string {
-  return "linear-gradient(to right, #dc3c3c, #e68c32, #c8b432, #50aa50, #1e8c64)";
-}
 
 // ─── QR Code Modal ──────────────────────────────────────────────────
 function QRCodeDisplay({

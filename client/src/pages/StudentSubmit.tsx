@@ -10,27 +10,12 @@ import { CheckCircle2, Loader2, AlertTriangle, SmilePlus, X } from "lucide-react
 import { motion, AnimatePresence } from "framer-motion";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
-
-const SCALE_LABELS: Record<number, string> = {
-  1: "Barely surviving",
-  2: "Really struggling",
-  3: "Having a tough time",
-  4: "Below average",
-  5: "Getting by",
-  6: "Doing okay",
-  7: "Feeling good",
-  8: "Doing great",
-  9: "Really thriving",
-  10: "Absolutely thriving!",
-};
-
-function getScaleColor(rating: number): string {
-  if (rating <= 2) return "rgb(220, 60, 60)";
-  if (rating <= 4) return "rgb(230, 140, 50)";
-  if (rating <= 6) return "rgb(200, 180, 50)";
-  if (rating <= 8) return "rgb(80, 170, 80)";
-  return "rgb(30, 140, 100)";
-}
+import {
+  getScaleColor,
+  SCALE_LABELS,
+  SCALE_SURVIVING,
+  SCALE_THRIVING,
+} from "@/lib/scale";
 
 function EmojiPickerSection({
   selectedEmoji,
@@ -306,8 +291,8 @@ export default function StudentSubmit() {
 
           <div className="bg-card rounded-xl p-5 border shadow-sm">
             <div className="flex justify-between text-xs text-muted-foreground mb-4 px-1">
-              <span className="font-medium" style={{ color: "rgb(220, 60, 60)" }}>Surviving</span>
-              <span className="font-medium" style={{ color: "rgb(30, 140, 100)" }}>Thriving</span>
+              <span className="font-medium" style={{ color: SCALE_SURVIVING }}>Surviving</span>
+              <span className="font-medium" style={{ color: SCALE_THRIVING }}>Thriving</span>
             </div>
 
             <Slider
