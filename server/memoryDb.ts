@@ -12,26 +12,20 @@
 import type {
   InsertSubmission,
   InsertSurveySession,
-  InsertUser,
   Submission,
   SurveySession,
-  User,
 } from "../drizzle/schema";
 
 type Store = {
-  users: User[];
   sessions: SurveySession[];
   submissions: Submission[];
-  nextUserId: number;
   nextSessionId: number;
   nextSubmissionId: number;
 };
 
 const store: Store = {
-  users: [],
   sessions: [],
   submissions: [],
-  nextUserId: 1,
   nextSessionId: 1,
   nextSubmissionId: 1,
 };
@@ -45,10 +39,8 @@ function newestFirst<T extends { id: number; createdAt: Date }>(rows: T[]): T[] 
 }
 
 export function resetMemoryDb(): void {
-  store.users = [];
   store.sessions = [];
   store.submissions = [];
-  store.nextUserId = 1;
   store.nextSessionId = 1;
   store.nextSubmissionId = 1;
 }
@@ -57,32 +49,6 @@ export function resetMemoryDb(): void {
 
 export async function getDb() {
   return null;
-}
-
-export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) throw new Error("User openId is required for upsert");
-
-  const existing = store.users.find((u) => u.openId === user.openId);
-  if (existing) {
-    Object.assign(existing, user, { lastSignedIn: user.lastSignedIn ?? new Date() });
-    return;
-  }
-
-  store.users.push({
-    id: store.nextUserId++,
-    openId: user.openId,
-    name: user.name ?? null,
-    email: user.email ?? null,
-    loginMethod: user.loginMethod ?? null,
-    role: user.role ?? "user",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    lastSignedIn: user.lastSignedIn ?? new Date(),
-  });
-}
-
-export async function getUserByOpenId(openId: string): Promise<User | undefined> {
-  return store.users.find((u) => u.openId === openId);
 }
 
 export async function createSession(

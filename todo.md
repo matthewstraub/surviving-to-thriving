@@ -17,7 +17,7 @@
 - [x] Manual reset button on teacher dashboard
 - [x] Password protection for teacher dashboard
 - [x] MMM-inspired branding and elegant styling
-- [x] Notification to teacher for extreme outliers
+- [~] Notification to teacher for extreme outliers — dashboard badge only; the Manus push-notification backend was removed because it never worked in production
 - [x] Vitest tests for backend procedures
 - [x] Replace limited emoji grid with full searchable emoji picker
 - [x] Fix emoji picker to fill full width of parent card on mobile
@@ -26,3 +26,4 @@
 - [x] Update emoji picker data to include the latest emojis
 - [x] Make the test suite run offline without touching the production database
 - [x] Rebrand from Marymount Manhattan blue to Northeastern's official palette and typography
+- [x] Remove the Manus platform scaffold (OAuth, storage, LLM, map, notifications, build plugins)

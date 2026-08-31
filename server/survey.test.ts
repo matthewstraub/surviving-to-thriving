@@ -9,11 +9,6 @@ vi.mock("./socket", () => ({
   emitSessionReset: vi.fn(),
 }));
 
-// Mock the notification module
-vi.mock("./_core/notification", () => ({
-  notifyOwner: vi.fn().mockResolvedValue(true),
-}));
-
 // The db layer talks to a real MySQL database, so back it with the in-memory store.
 // This keeps the suite offline and makes it impossible for a test run to reach
 // the production database.
