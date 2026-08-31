@@ -10,27 +10,12 @@ import { CheckCircle2, Loader2, AlertTriangle, SmilePlus, X } from "lucide-react
 import { motion, AnimatePresence } from "framer-motion";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
-
-const SCALE_LABELS: Record<number, string> = {
-  1: "Barely surviving",
-  2: "Really struggling",
-  3: "Having a tough time",
-  4: "Below average",
-  5: "Getting by",
-  6: "Doing okay",
-  7: "Feeling good",
-  8: "Doing great",
-  9: "Really thriving",
-  10: "Absolutely thriving!",
-};
-
-function getScaleColor(rating: number): string {
-  if (rating <= 2) return "rgb(220, 60, 60)";
-  if (rating <= 4) return "rgb(230, 140, 50)";
-  if (rating <= 6) return "rgb(200, 180, 50)";
-  if (rating <= 8) return "rgb(80, 170, 80)";
-  return "rgb(30, 140, 100)";
-}
+import {
+  getScaleColor,
+  SCALE_LABELS,
+  SCALE_SURVIVING,
+  SCALE_THRIVING,
+} from "@/lib/scale";
 
 function EmojiPickerSection({
   selectedEmoji,
@@ -259,17 +244,17 @@ export default function StudentSubmit() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-primary text-primary-foreground py-6 px-4">
+      <div className="bg-nu-ink text-white py-6 px-4">
         <div className="max-w-lg mx-auto text-center">
           <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight">
             Surviving to Thriving
           </h1>
           {session?.label && (
-            <p className="mt-1 text-primary-foreground/80 text-sm">
+            <p className="mt-1 text-white/80 text-sm">
               {session.label}
             </p>
           )}
-          <p className="mt-2 text-primary-foreground/70 text-sm">
+          <p className="mt-2 text-white/70 text-sm">
             How are you doing today? Share honestly — your response is anonymous to classmates.
           </p>
         </div>
@@ -306,17 +291,20 @@ export default function StudentSubmit() {
 
           <div className="bg-card rounded-xl p-5 border shadow-sm">
             <div className="flex justify-between text-xs text-muted-foreground mb-4 px-1">
-              <span className="font-medium" style={{ color: "rgb(220, 60, 60)" }}>Surviving</span>
-              <span className="font-medium" style={{ color: "rgb(30, 140, 100)" }}>Thriving</span>
+              <span className="font-medium" style={{ color: SCALE_SURVIVING }}>Surviving</span>
+              <span className="font-medium" style={{ color: SCALE_THRIVING }}>Thriving</span>
             </div>
 
+            {/* The filled track follows the rating's own scale color rather than the
+                brand accent, so a 9/10 does not read as an alarming red bar. */}
             <Slider
               value={[rating]}
               onValueChange={(v) => setRating(v[0])}
               min={1}
               max={10}
               step={1}
-              className="mb-4"
+              style={{ "--scale-fill": getScaleColor(rating) } as React.CSSProperties}
+              className="mb-4 [&_[data-slot=slider-range]]:bg-[var(--scale-fill)] [&_[data-slot=slider-thumb]]:border-[var(--scale-fill)]"
             />
 
             <div className="flex justify-between text-xs text-muted-foreground px-0.5">

@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <div className="bg-primary text-primary-foreground">
+      <div className="bg-nu-ink text-white">
         <div className="max-w-3xl mx-auto px-4 py-16 sm:py-24 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -19,7 +19,7 @@ export default function Home() {
             <h1 className="text-4xl sm:text-5xl font-serif font-bold tracking-tight mb-4">
               Surviving to Thriving
             </h1>
-            <p className="text-lg text-primary-foreground/80 max-w-xl mx-auto mb-8">
+            <p className="text-lg text-white/80 max-w-xl mx-auto mb-8">
               A quick, anonymous classroom check-in that helps instructors
               understand how their students are really doing.
             </p>

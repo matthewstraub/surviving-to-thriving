@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import QRCode from "qrcode";
+import { getScaleColor, getScaleGradient } from "@/lib/scale";
 
 type Submission = {
   id: number;
@@ -45,18 +46,6 @@ type Submission = {
   ipAddress: string | null;
   createdAt: Date;
 };
-
-function getScaleColor(rating: number): string {
-  if (rating <= 2) return "#dc3c3c";
-  if (rating <= 4) return "#e68c32";
-  if (rating <= 6) return "#c8b432";
-  if (rating <= 8) return "#50aa50";
-  return "#1e8c64";
-}
-
-function getScaleGradient(): string {
-  return "linear-gradient(to right, #dc3c3c, #e68c32, #c8b432, #50aa50, #1e8c64)";
-}
 
 // ─── QR Code Modal ──────────────────────────────────────────────────
 function QRCodeDisplay({
@@ -72,7 +61,7 @@ function QRCodeDisplay({
     QRCode.toDataURL(url, {
       width: 300,
       margin: 2,
-      color: { dark: "#0033A0", light: "#ffffff" },
+      color: { dark: "#1e2028", light: "#ffffff" },
     }).then(setQrDataUrl);
   }, [url]);
 
@@ -426,13 +415,13 @@ export default function TeacherDashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-primary text-primary-foreground">
+      <div className="bg-nu-ink text-white">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-serif font-bold">
               Surviving to Thriving
             </h1>
-            <p className="text-xs text-primary-foreground/70">
+            <p className="text-xs text-white/70">
               Teacher Dashboard
             </p>
           </div>
@@ -440,7 +429,7 @@ export default function TeacherDashboard() {
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            className="text-white/80 hover:text-white hover:bg-white/10"
           >
             <LogOut className="h-4 w-4 mr-1" />
             Sign Out

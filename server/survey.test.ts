@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
+import { resetMemoryDb } from "./memoryDb";
 
 // Mock the socket module to avoid actual WebSocket connections
 vi.mock("./socket", () => ({
@@ -13,7 +14,17 @@ vi.mock("./_core/notification", () => ({
   notifyOwner: vi.fn().mockResolvedValue(true),
 }));
 
+// The db layer talks to a real MySQL database, so back it with the in-memory store.
+// This keeps the suite offline and makes it impossible for a test run to reach
+// the production database.
+vi.mock("./db", async () => await import("./memoryDb"));
+
 const TEACHER_PASSWORD = process.env.TEACHER_PASSWORD || "thriving2024";
+
+// Each test starts from an empty store so cases cannot leak into one another.
+beforeEach(() => {
+  resetMemoryDb();
+});
 
 function createMockContext(overrides?: Partial<TrpcContext>): TrpcContext {
   return {
