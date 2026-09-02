@@ -1,6 +1,6 @@
 # Deploying "Surviving to Thriving" on Render
 
-This guide walks you through deploying the Surviving to Thriving classroom check-in app to **Render** (free tier) with a **TiDB Cloud Starter** MySQL database (also free). By the end, you will have a publicly accessible URL that your students can reach from any device — no Manus account required.
+This guide walks you through deploying the Surviving to Thriving classroom check-in app to **Render** (free tier) with a **TiDB Cloud Starter** MySQL database (also free). By the end, you will have a publicly accessible URL that your students can reach from any device — no third-party account required.
 
 ---
 
@@ -79,7 +79,6 @@ Render deploys from a Git repository. If you have not already, push the project 
    git push -u origin main
    ```
 
-> **Tip:** You can also use the **GitHub export** feature in the Manus Management UI (Settings > GitHub) to export the code directly to a new repository.
 
 ---
 
@@ -112,20 +111,10 @@ Before clicking "Create Web Service", scroll down to the **Environment Variables
 |----------|-------|-------|
 | `DATABASE_URL` | Your TiDB connection string from Step 1.3 | Must include `?ssl=...` |
 | `TEACHER_PASSWORD` | A password of your choice | Used to log into the teacher dashboard |
-| `JWT_SECRET` | Any random string (e.g., `my-super-secret-key-2024`) | Used for session cookie signing |
 | `NODE_ENV` | `production` | Tells the app to serve built static files |
 | `PORT` | `10000` | Render's default port for web services |
 
-The following Manus-specific variables are **not required** for the core functionality and can be left unset. The app will still work without them — you just will not get the Manus OAuth login or push notifications:
-
-| Variable | Can Skip? | Effect if Missing |
-|----------|-----------|-------------------|
-| `VITE_APP_ID` | Yes | Manus OAuth login button won't work (not needed — teacher uses password auth) |
-| `OAUTH_SERVER_URL` | Yes | Same as above |
-| `VITE_OAUTH_PORTAL_URL` | Yes | Same as above |
-| `BUILT_IN_FORGE_API_URL` | Yes | Outlier push notifications to Manus won't send (app still works) |
-| `BUILT_IN_FORGE_API_KEY` | Yes | Same as above |
-| `OWNER_OPEN_ID` | Yes | Admin role auto-assignment won't work (not needed) |
+There are no optional variables. Earlier versions of this project required a set of Manus platform variables; that scaffolding has been removed, so `DATABASE_URL`, `TEACHER_PASSWORD`, `NODE_ENV` and `NODE_VERSION` are all you need.
 
 ### 3.4 Create the Service
 
@@ -164,20 +153,6 @@ After the first deploy, you need to create the database tables. You have two opt
 If you cannot access the Render shell on the free tier, run the following SQL statements directly in the **TiDB Cloud SQL Editor** (or any MySQL client connected to your database):
 
 ```sql
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` int AUTO_INCREMENT NOT NULL,
-  `openId` varchar(64) NOT NULL,
-  `name` text,
-  `email` varchar(320),
-  `loginMethod` varchar(64),
-  `role` enum('user','admin') NOT NULL DEFAULT 'user',
-  `createdAt` timestamp NOT NULL DEFAULT (now()),
-  `updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-  `lastSignedIn` timestamp NOT NULL DEFAULT (now()),
-  CONSTRAINT `users_id` PRIMARY KEY(`id`),
-  CONSTRAINT `users_openId_unique` UNIQUE(`openId`)
-);
-
 CREATE TABLE IF NOT EXISTS `survey_sessions` (
   `id` int AUTO_INCREMENT NOT NULL,
   `code` varchar(32) NOT NULL,

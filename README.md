@@ -1,6 +1,5 @@
 # Surviving to Thriving — Technical Documentation
 
-**Author:** Manus AI
 **Last Updated:** February 2026
 **Version:** 1.0
 
@@ -16,7 +15,7 @@ The application uses Northeastern University's official brand palette. NU Red (`
 
 ## 2. Architecture Overview
 
-The application follows a monolithic full-stack architecture where the frontend and backend are bundled into a single deployable unit. In production, the Express server serves the pre-built React SPA alongside the API and WebSocket endpoints.
+The application follows a monolithic full-stack architecture where the frontend and backend are bundled into a single deployable unit. It was originally generated from a Manus platform template; that scaffolding (OAuth, storage, LLM, map and notification helpers) has since been removed, leaving only the classroom check-in functionality. In production, the Express server serves the pre-built React SPA alongside the API and WebSocket endpoints.
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -96,12 +95,6 @@ Each student response is stored as a row in this table, linked to its parent ses
 | `ipAddress` | `varchar(64)` | Client IP address captured at submission time |
 | `createdAt` | `timestamp` | When the submission was recorded |
 
-### 4.3 `users` Table
-
-This table is part of the Manus OAuth scaffold and is not actively used by the core classroom check-in functionality. It exists to support the platform's built-in authentication system. The teacher dashboard uses a simpler password-based authentication mechanism instead.
-
----
-
 ## 5. Backend API Reference
 
 All API endpoints are defined as tRPC procedures in `server/routers.ts`. The tRPC layer provides end-to-end type safety — the same TypeScript types are shared between server and client, eliminating the need for manual API documentation or schema validation on the frontend.
@@ -138,11 +131,11 @@ These procedures handle creating, listing, activating, deactivating, resetting, 
 | `submission.submit` | Mutation | `{ sessionCode, studentName, emoji, rating }` | Records a student submission, emits it via WebSocket, and checks for outliers |
 | `submission.listBySession` | Query | `{ sessionCode, token }` | Returns all submissions for a session (teacher-only) |
 
-### 5.4 Outlier Detection and Notifications
+### 5.4 Outlier Detection
 
-When a student submits a response, the server performs an outlier check if there are at least 3 submissions in the session. The algorithm calculates the mean and standard deviation of all ratings, then flags the new submission as an outlier if it deviates by more than 2 standard deviations from the mean **and** the rating is extreme (1–2 or 9–10). When an outlier is detected, the server attempts to send a push notification to the project owner via the `notifyOwner` helper. This notification channel depends on the Manus platform's built-in notification API and will silently fail if the required environment variables (`BUILT_IN_FORGE_API_URL`, `BUILT_IN_FORGE_API_KEY`) are not configured.
+The teacher dashboard flags submissions that sit far from the group. It calculates the mean and standard deviation of all ratings in the session and badges any submission deviating by more than 1.5 standard deviations, once at least 3 responses exist.
 
----
+Outlier flagging is **visual only** — it appears on the dashboard while you are watching it. The app does not send email, SMS, or push notifications, so it will not alert you to a struggling student outside of class.
 
 ## 6. Real-Time Communication (WebSocket)
 
@@ -192,20 +185,10 @@ The application requires the following environment variables to be set on Render
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | Full MySQL connection string including SSL parameter, pointing to the TiDB Cloud database |
 | `TEACHER_PASSWORD` | Yes | The password used to access the teacher dashboard |
-| `JWT_SECRET` | Yes | A random string used for signing session cookies (part of the Manus auth scaffold) |
 | `NODE_ENV` | Yes | Must be set to `production` so the server serves the built static files |
 | `NODE_VERSION` | Recommended | Set to `22.13.0` to match the development environment |
 
-The following variables are part of the Manus platform scaffold but are **not required** for the core check-in functionality when hosting on Render.
-
-| Variable | Effect if Missing |
-|----------|-------------------|
-| `VITE_APP_ID` | Manus OAuth login button will not work (not needed — teacher uses password auth) |
-| `OAUTH_SERVER_URL` | Same as above |
-| `VITE_OAUTH_PORTAL_URL` | Same as above |
-| `BUILT_IN_FORGE_API_URL` | Outlier push notifications will not send (app still works normally) |
-| `BUILT_IN_FORGE_API_KEY` | Same as above |
-| `OWNER_OPEN_ID` | Admin role auto-assignment will not work (not needed) |
+There are no other required or optional variables. Earlier versions of this project carried a set of Manus platform variables (`VITE_APP_ID`, `OAUTH_SERVER_URL`, `VITE_OAUTH_PORTAL_URL`, `BUILT_IN_FORGE_API_URL`, `BUILT_IN_FORGE_API_KEY`, `OWNER_OPEN_ID`, `JWT_SECRET`); the scaffold has been removed and those can be deleted from the Render environment.
 
 ---
 
@@ -215,13 +198,11 @@ The table below maps each important file to its role in the application, organiz
 
 | File Path | Purpose |
 |-----------|---------|
-| `drizzle/schema.ts` | Database table definitions (users, survey_sessions, submissions) |
+| `drizzle/schema.ts` | Database table definitions (survey_sessions, submissions) |
 | `server/db.ts` | Database query helpers (CRUD operations for sessions and submissions) |
 | `server/routers.ts` | All tRPC API procedures (teacher auth, session management, submissions) |
 | `server/socket.ts` | WebSocket server initialization and event emission functions |
 | `server/_core/index.ts` | Express server entry point, Vite middleware, and Socket.io registration |
-| `server/_core/env.ts` | Environment variable loading and validation |
-| `server/_core/notification.ts` | Push notification helper for outlier alerts |
 | `client/src/App.tsx` | React router configuration (all four routes) |
 | `client/src/pages/Home.tsx` | Landing page with branding and teacher dashboard link |
 | `client/src/pages/StudentSubmit.tsx` | Student submission form with emoji picker and slider |
@@ -284,7 +265,25 @@ On Render's free tier, the server hibernates after 15 minutes of inactivity. To 
 
 If you modify the database schema in `drizzle/schema.ts`, you need to generate and apply migrations. Run `pnpm db:push` locally with the `DATABASE_URL` environment variable pointing to your TiDB Cloud database. This command generates SQL migration files in the `drizzle/` directory and applies them to the database. Commit the generated migration files to Git so they are tracked in version control.
 
-### 10.7 Local Development and Testing
+### 10.7 Dropping the Legacy `users` Table
+
+The `users` table came from the Manus OAuth scaffold and is no longer referenced by any code. It is now absent from `drizzle/schema.ts`, but the table itself still exists in the database, where it is harmless — nothing reads or writes it.
+
+To remove it, first confirm it holds nothing you want:
+
+```sql
+SELECT COUNT(*) FROM users;
+```
+
+If that returns 0 (or only Manus scaffold rows you do not need), drop it in the TiDB Cloud SQL Editor:
+
+```sql
+DROP TABLE IF EXISTS users;
+```
+
+This is irreversible, and it is not required — the app runs correctly either way.
+
+### 10.8 Local Development and Testing
 
 The app can run and be tested locally with **no database at all**. Set `USE_MEMORY_DB=1` and the server serves every query from an in-memory store (`server/memoryDb.ts`) pre-seeded with demo sessions and submissions:
 
@@ -302,7 +301,7 @@ pnpm test
 
 Never point `DATABASE_URL` at the production database while running tests — the suite creates and deletes sessions and submissions.
 
-### 10.8 Updating Dependencies
+### 10.9 Updating Dependencies
 
 Run `pnpm update` locally to update packages to their latest compatible versions, test the application, and push to `main`. Key dependencies to keep an eye on include `socket.io` and `socket.io-client` (must be the same major version on both sides), `drizzle-orm` and `drizzle-kit` (must be compatible versions), and `emoji-mart`, `@emoji-mart/react`, and `@emoji-mart/data` (must all be from the same major release).
 
