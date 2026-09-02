@@ -131,11 +131,26 @@ These procedures handle creating, listing, activating, deactivating, resetting, 
 | `submission.submit` | Mutation | `{ sessionCode, studentName, emoji, rating }` | Records a student submission, emits it via WebSocket, and checks for outliers |
 | `submission.listBySession` | Query | `{ sessionCode, token }` | Returns all submissions for a session (teacher-only) |
 
-### 5.4 Outlier Detection
+### 5.4 Flagging Students Who May Need a Check-In
 
-The teacher dashboard flags submissions that sit far from the group. It calculates the mean and standard deviation of all ratings in the session and badges any submission deviating by more than 1.5 standard deviations, once at least 3 responses exist.
+The dashboard badges students who may need the instructor's attention. A submission is flagged if **either** condition holds:
 
-Outlier flagging is **visual only** — it appears on the dashboard while you are watching it. The app does not send email, SMS, or push notifications, so it will not alert you to a struggling student outside of class.
+| Rule | Condition | Purpose |
+|------|-----------|---------|
+| Absolute | rating is **3 or below** | "Having a tough time" or worse is always surfaced, whatever the rest of the class reports |
+| Relative | rating is **5 or below** *and* more than **1.5 standard deviations below the class mean** (needs at least 3 responses) | Catches a student sitting well below their own class, even if their rating is not low in absolute terms |
+
+The logic lives in `flagNeedsCheckIn` in `client/src/lib/scale.ts` and is covered by tests in `client/src/lib/scale.test.ts`.
+
+Two properties are deliberate:
+
+**It only flags the low end.** A student reporting 10/10 is statistically unusual but is not a concern, and badging them buries the students who are.
+
+**The absolute rule has no minimum response count.** If the first student to check in reports a 2, that is flagged immediately.
+
+The absolute rule exists because a purely relative threshold goes quiet exactly when it matters most. In a class reporting `9, 9, 8, 2, 2, 3`, the spread is wide enough that a relative-only rule flags nobody, despite three students clearly struggling. In a class where everyone reports 2s and 3s, there is no deviation to detect at all.
+
+Flagging is **visual only** — it appears on the dashboard while you are watching it. The app does not send email, SMS, or push notifications, so it will not alert you to a struggling student outside of class.
 
 ## 6. Real-Time Communication (WebSocket)
 

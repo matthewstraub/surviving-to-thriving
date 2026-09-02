@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import QRCode from "qrcode";
-import { getScaleColor, getScaleGradient } from "@/lib/scale";
+import { flagNeedsCheckIn, getScaleColor, getScaleGradient } from "@/lib/scale";
 
 type Submission = {
   id: number;
@@ -96,12 +96,10 @@ function QRCodeDisplay({
 // ─── Submission Row ─────────────────────────────────────────────────
 function SubmissionRow({
   submission,
-  isOutlier,
-  average,
+  needsCheckIn,
 }: {
   submission: Submission;
-  isOutlier: boolean;
-  average: number;
+  needsCheckIn: boolean;
 }) {
   const positionPercent = ((submission.rating - 1) / 9) * 100;
 
@@ -110,7 +108,7 @@ function SubmissionRow({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-        isOutlier
+        needsCheckIn
           ? "bg-destructive/5 border border-destructive/20"
           : "bg-card border border-border/50 hover:border-border"
       }`}
@@ -121,13 +119,13 @@ function SubmissionRow({
           <span className="font-medium text-sm truncate">
             {submission.studentName}
           </span>
-          {isOutlier && (
+          {needsCheckIn && (
             <Badge
               variant="destructive"
               className="text-[10px] px-1.5 py-0 h-4"
             >
               <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
-              outlier
+              needs check-in
             </Badge>
           )}
         </div>
@@ -377,23 +375,11 @@ export default function TeacherDashboard() {
     navigate("/teacher/login");
   };
 
-  // Outlier detection
-  const outlierIds = useMemo(() => {
-    if (localSubmissions.length < 3) return new Set<number>();
-    const ratings = localSubmissions.map((s) => s.rating);
-    const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
-    const stdDev = Math.sqrt(
-      ratings.reduce((sum, r) => sum + Math.pow(r - avg, 2), 0) /
-        ratings.length
+  const needsCheckInIds = useMemo(() => {
+    const flags = flagNeedsCheckIn(localSubmissions.map((s) => s.rating));
+    return new Set(
+      localSubmissions.filter((_, i) => flags[i]).map((s) => s.id)
     );
-    const threshold = 1.5 * stdDev;
-    const ids = new Set<number>();
-    localSubmissions.forEach((s) => {
-      if (Math.abs(s.rating - avg) > threshold) {
-        ids.add(s.id);
-      }
-    });
-    return ids;
   }, [localSubmissions]);
 
   const studentUrl = activeSessionCode
@@ -630,13 +616,7 @@ export default function TeacherDashboard() {
                         <SubmissionRow
                           key={sub.id}
                           submission={sub}
-                          isOutlier={outlierIds.has(sub.id)}
-                          average={
-                            localSubmissions.reduce(
-                              (a, b) => a + b.rating,
-                              0
-                            ) / localSubmissions.length
-                          }
+                          needsCheckIn={needsCheckInIds.has(sub.id)}
                         />
                       ))}
                     </AnimatePresence>
