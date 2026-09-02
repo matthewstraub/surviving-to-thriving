@@ -249,11 +249,11 @@ export default function TeacherDashboard() {
   const [showQR, setShowQR] = useState(false);
   const [localSubmissions, setLocalSubmissions] = useState<Submission[]>([]);
 
-  // Verify token
-  const verifyQuery = trpc.teacher.verify.useQuery(
-    { token },
-    { enabled: !!token, retry: false }
-  );
+  // The token itself rides along in the Authorization header (see main.tsx).
+  const verifyQuery = trpc.teacher.verify.useQuery(undefined, {
+    enabled: !!token,
+    retry: false,
+  });
 
   useEffect(() => {
     if (!token || (verifyQuery.data && !verifyQuery.data.valid)) {
@@ -262,14 +262,13 @@ export default function TeacherDashboard() {
   }, [token, verifyQuery.data, navigate]);
 
   // Sessions
-  const sessionsQuery = trpc.session.list.useQuery(
-    { token },
-    { enabled: !!token && verifyQuery.data?.valid === true }
-  );
+  const sessionsQuery = trpc.session.list.useQuery(undefined, {
+    enabled: !!token && verifyQuery.data?.valid === true,
+  });
 
   // Submissions for active session
   const submissionsQuery = trpc.submission.listBySession.useQuery(
-    { sessionCode: activeSessionCode || "", token },
+    { sessionCode: activeSessionCode || "" },
     {
       enabled: !!activeSessionCode && !!token,
       refetchInterval: 10000, // fallback polling every 10s
@@ -356,18 +355,17 @@ export default function TeacherDashboard() {
   const handleCreateSession = () => {
     createSessionMutation.mutate({
       label: newLabel.trim() || undefined,
-      token,
     });
   };
 
   const handleReset = () => {
     if (!activeSessionId || !activeSessionCode) return;
-    resetMutation.mutate({ id: activeSessionId, code: activeSessionCode, token });
+    resetMutation.mutate({ id: activeSessionId, code: activeSessionCode });
   };
 
   const handleDeleteSession = () => {
     if (!activeSessionId) return;
-    deleteSessionMutation.mutate({ id: activeSessionId, token });
+    deleteSessionMutation.mutate({ id: activeSessionId });
   };
 
   const handleLogout = () => {

@@ -25,6 +25,13 @@ const trpcClient = trpc.createClient({
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
+      // Sent as a header rather than in the query string: tRPC puts procedure
+      // input into the URL for queries, which would land the token in every
+      // HTTP access log.
+      headers: () => {
+        const token = localStorage.getItem("teacher_token");
+        return token ? { authorization: `Bearer ${token}` } : {};
+      },
     }),
   ],
 });
