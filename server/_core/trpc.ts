@@ -1,4 +1,4 @@
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
 
@@ -8,3 +8,16 @@ const t = initTRPC.context<TrpcContext>().create({
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
+
+/** Requires a valid teacher session token on the request. */
+export const teacherProcedure = t.procedure.use(
+  t.middleware(({ ctx, next }) => {
+    if (!ctx.isTeacher) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Teacher sign-in required",
+      });
+    }
+    return next({ ctx });
+  })
+);

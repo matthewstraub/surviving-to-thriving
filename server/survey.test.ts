@@ -16,6 +16,9 @@ vi.mock("./db", async () => await import("./memoryDb"));
 
 const TEACHER_PASSWORD = process.env.TEACHER_PASSWORD || "thriving2024";
 
+/** A caller with no valid teacher session. */
+const signedOut = () => appRouter.createCaller(createMockContext({ isTeacher: false }));
+
 // Each test starts from an empty store so cases cannot leak into one another.
 beforeEach(() => {
   resetMemoryDb();
@@ -23,7 +26,7 @@ beforeEach(() => {
 
 function createMockContext(overrides?: Partial<TrpcContext>): TrpcContext {
   return {
-    user: null,
+    isTeacher: true,
     req: {
       protocol: "https",
       headers: {},
@@ -43,7 +46,10 @@ describe("teacher.login", () => {
 
     const result = await caller.teacher.login({ password: TEACHER_PASSWORD });
     expect(result.success).toBe(true);
-    expect(result.token).toBe(TEACHER_PASSWORD);
+    // The token must never be the password itself.
+    expect(result.token).not.toBe(TEACHER_PASSWORD);
+    expect(result.token).toContain(".");
+    expect(result.expiresAt).toBeGreaterThan(Date.now());
   });
 
   it("throws UNAUTHORIZED with wrong password", async () => {
@@ -57,20 +63,13 @@ describe("teacher.login", () => {
 });
 
 describe("teacher.verify", () => {
-  it("returns valid=true for correct token", async () => {
-    const ctx = createMockContext();
-    const caller = appRouter.createCaller(ctx);
-
-    const result = await caller.teacher.verify({ token: TEACHER_PASSWORD });
-    expect(result.valid).toBe(true);
+  it("returns valid=true for a signed-in request", async () => {
+    const caller = appRouter.createCaller(createMockContext());
+    expect((await caller.teacher.verify()).valid).toBe(true);
   });
 
-  it("returns valid=false for incorrect token", async () => {
-    const ctx = createMockContext();
-    const caller = appRouter.createCaller(ctx);
-
-    const result = await caller.teacher.verify({ token: "bad-token" });
-    expect(result.valid).toBe(false);
+  it("returns valid=false without a valid session", async () => {
+    expect((await signedOut().teacher.verify()).valid).toBe(false);
   });
 });
 
@@ -80,8 +79,7 @@ describe("session.create", () => {
     const caller = appRouter.createCaller(ctx);
 
     const session = await caller.session.create({
-      label: "Test Session",
-      token: TEACHER_PASSWORD,
+      label: "Test Session"
     });
 
     expect(session).toBeDefined();
@@ -96,7 +94,7 @@ describe("session.create", () => {
     const caller = appRouter.createCaller(ctx);
 
     await expect(
-      caller.session.create({ label: "Test", token: "wrong" })
+      signedOut().session.create({ label: "Test" })
     ).rejects.toThrow();
   });
 });
@@ -106,7 +104,7 @@ describe("session.list", () => {
     const ctx = createMockContext();
     const caller = appRouter.createCaller(ctx);
 
-    const sessions = await caller.session.list({ token: TEACHER_PASSWORD });
+    const sessions = await caller.session.list();
     expect(Array.isArray(sessions)).toBe(true);
   });
 
@@ -115,7 +113,7 @@ describe("session.list", () => {
     const caller = appRouter.createCaller(ctx);
 
     await expect(
-      caller.session.list({ token: "wrong" })
+      signedOut().session.list()
     ).rejects.toThrow();
   });
 });
@@ -127,8 +125,7 @@ describe("session.getByCode", () => {
 
     // First create a session
     const created = await caller.session.create({
-      label: "Lookup Test",
-      token: TEACHER_PASSWORD,
+      label: "Lookup Test"
     });
 
     // Then look it up by code
@@ -154,8 +151,7 @@ describe("submission.submit", () => {
 
     // Create a session first
     const session = await caller.session.create({
-      label: "Submit Test",
-      token: TEACHER_PASSWORD,
+      label: "Submit Test"
     });
 
     const submission = await caller.submission.submit({
@@ -231,8 +227,7 @@ describe("submission.listBySession", () => {
 
     // Create session and add submissions
     const session = await caller.session.create({
-      label: "List Test",
-      token: TEACHER_PASSWORD,
+      label: "List Test"
     });
 
     await caller.submission.submit({
@@ -250,8 +245,7 @@ describe("submission.listBySession", () => {
     });
 
     const subs = await caller.submission.listBySession({
-      sessionCode: session.code,
-      token: TEACHER_PASSWORD,
+      sessionCode: session.code
     });
 
     expect(subs.length).toBeGreaterThanOrEqual(2);
@@ -262,10 +256,7 @@ describe("submission.listBySession", () => {
     const caller = appRouter.createCaller(ctx);
 
     await expect(
-      caller.submission.listBySession({
-        sessionCode: "test",
-        token: "wrong",
-      })
+      signedOut().submission.listBySession({ sessionCode: "test" })
     ).rejects.toThrow();
   });
 });
@@ -277,8 +268,7 @@ describe("session.reset", () => {
 
     // Create session and add a submission
     const session = await caller.session.create({
-      label: "Reset Test",
-      token: TEACHER_PASSWORD,
+      label: "Reset Test"
     });
 
     await caller.submission.submit({
@@ -290,23 +280,20 @@ describe("session.reset", () => {
 
     // Verify submission exists
     let subs = await caller.submission.listBySession({
-      sessionCode: session.code,
-      token: TEACHER_PASSWORD,
+      sessionCode: session.code
     });
     expect(subs.length).toBeGreaterThanOrEqual(1);
 
     // Reset
     const result = await caller.session.reset({
       id: session.id,
-      code: session.code,
-      token: TEACHER_PASSWORD,
+      code: session.code
     });
     expect(result.success).toBe(true);
 
     // Verify submissions are cleared
     subs = await caller.submission.listBySession({
-      sessionCode: session.code,
-      token: TEACHER_PASSWORD,
+      sessionCode: session.code
     });
     expect(subs.length).toBe(0);
   });
@@ -318,8 +305,7 @@ describe("session.delete", () => {
     const caller = appRouter.createCaller(ctx);
 
     const session = await caller.session.create({
-      label: "Delete Test",
-      token: TEACHER_PASSWORD,
+      label: "Delete Test"
     });
 
     await caller.submission.submit({
@@ -330,8 +316,7 @@ describe("session.delete", () => {
     });
 
     const result = await caller.session.delete({
-      id: session.id,
-      token: TEACHER_PASSWORD,
+      id: session.id
     });
     expect(result.success).toBe(true);
 

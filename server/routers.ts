@@ -1,5 +1,6 @@
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, router, teacherProcedure } from "./_core/trpc";
+import { isCorrectPassword, issueTeacherToken } from "./_core/teacherAuth";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import {
@@ -16,44 +17,37 @@ import {
 import { emitNewSubmission, emitSessionReset } from "./socket";
 import { TRPCError } from "@trpc/server";
 
-// In-memory teacher password — set via env or default
-const TEACHER_PASSWORD = process.env.TEACHER_PASSWORD || "thriving2024";
-
 export const appRouter = router({
   system: systemRouter,
-  // ─── Teacher password auth (simple, no OAuth needed) ──────────────
+  // ─── Teacher password auth ────────────────────────────────────────
   teacher: router({
     login: publicProcedure
       .input(z.object({ password: z.string() }))
       .mutation(({ input }) => {
-        if (input.password === TEACHER_PASSWORD) {
-          return { success: true, token: TEACHER_PASSWORD };
+        if (!isCorrectPassword(input.password)) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Invalid teacher password",
+          });
         }
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Invalid teacher password",
-        });
+        // Returns a signed, expiring token rather than the password itself.
+        const { token, expiresAt } = issueTeacherToken();
+        return { success: true, token, expiresAt };
       }),
-    verify: publicProcedure
-      .input(z.object({ token: z.string() }))
-      .query(({ input }) => {
-        return { valid: input.token === TEACHER_PASSWORD };
-      }),
+
+    /** The token is read from the Authorization header by createContext. */
+    verify: publicProcedure.query(({ ctx }) => ({ valid: ctx.isTeacher })),
   }),
 
   // ─── Survey Sessions ─────────────────────────────────────────────
   session: router({
-    create: publicProcedure
+    create: teacherProcedure
       .input(
         z.object({
           label: z.string().optional(),
-          token: z.string(),
         })
       )
       .mutation(async ({ input }) => {
-        if (input.token !== TEACHER_PASSWORD) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
-        }
         const code = nanoid(8);
         const session = await createSession({
           code,
@@ -62,14 +56,7 @@ export const appRouter = router({
         return session;
       }),
 
-    list: publicProcedure
-      .input(z.object({ token: z.string() }))
-      .query(async ({ input }) => {
-        if (input.token !== TEACHER_PASSWORD) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
-        }
-        return listSessions();
-      }),
+    list: teacherProcedure.query(async () => listSessions()),
 
     getByCode: publicProcedure
       .input(z.object({ code: z.string() }))
@@ -84,42 +71,30 @@ export const appRouter = router({
         return session;
       }),
 
-    deactivate: publicProcedure
-      .input(z.object({ id: z.number(), token: z.string() }))
+    deactivate: teacherProcedure
+      .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
-        if (input.token !== TEACHER_PASSWORD) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
-        }
         await deactivateSession(input.id);
         return { success: true };
       }),
 
-    activate: publicProcedure
-      .input(z.object({ id: z.number(), token: z.string() }))
+    activate: teacherProcedure
+      .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
-        if (input.token !== TEACHER_PASSWORD) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
-        }
         await activateSession(input.id);
         return { success: true };
       }),
 
-    delete: publicProcedure
-      .input(z.object({ id: z.number(), token: z.string() }))
+    delete: teacherProcedure
+      .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
-        if (input.token !== TEACHER_PASSWORD) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
-        }
         await deleteSession(input.id);
         return { success: true };
       }),
 
-    reset: publicProcedure
-      .input(z.object({ id: z.number(), code: z.string(), token: z.string() }))
+    reset: teacherProcedure
+      .input(z.object({ id: z.number(), code: z.string() }))
       .mutation(async ({ input }) => {
-        if (input.token !== TEACHER_PASSWORD) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
-        }
         await clearSubmissionsBySession(input.id);
         emitSessionReset(input.code);
         return { success: true };
@@ -172,12 +147,9 @@ export const appRouter = router({
         return submission;
       }),
 
-    listBySession: publicProcedure
-      .input(z.object({ sessionCode: z.string(), token: z.string() }))
+    listBySession: teacherProcedure
+      .input(z.object({ sessionCode: z.string() }))
       .query(async ({ input }) => {
-        if (input.token !== TEACHER_PASSWORD) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
-        }
         const session = await getSessionByCode(input.sessionCode);
         if (!session) {
           throw new TRPCError({ code: "NOT_FOUND" });

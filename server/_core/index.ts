@@ -7,6 +7,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { initSocketIO } from "../socket";
+import { assertTeacherPasswordConfigured } from "./teacherAuth";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -28,6 +29,9 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Fail the deploy rather than come up with a publicly known password.
+  assertTeacherPasswordConfigured();
+
   // Local development against the in-memory store — never engages in production.
   if (process.env.USE_MEMORY_DB === "1" && process.env.NODE_ENV !== "production") {
     const { seedMemoryDb } = await import("../memoryDb");
@@ -72,4 +76,9 @@ async function startServer() {
   });
 }
 
-startServer().catch(console.error);
+startServer().catch((error) => {
+  // Exit non-zero so a failed start is unambiguous to the host. Render then
+  // marks the deploy failed and keeps the previous version serving.
+  console.error(error);
+  process.exit(1);
+});
