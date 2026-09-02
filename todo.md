@@ -27,3 +27,4 @@
 - [x] Make the test suite run offline without touching the production database
 - [x] Rebrand from Marymount Manhattan blue to Northeastern's official palette and typography
 - [x] Remove the Manus platform scaffold (OAuth, storage, LLM, map, notifications, build plugins)
+- [x] Fix outlier flagging: low-side only, with an absolute floor so a uniformly struggling class is not missed

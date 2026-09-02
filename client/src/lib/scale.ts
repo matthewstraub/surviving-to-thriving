@@ -46,3 +46,47 @@ export const SCALE_LABELS: Record<number, string> = {
   9: "Really thriving",
   10: "Absolutely thriving!",
 };
+
+// ─── Who needs a check-in ───────────────────────────────────────────
+
+/**
+ * Ratings at or below this are always flagged, however the rest of the class is
+ * doing. This absolute floor matters because a purely relative rule goes silent
+ * exactly when it is needed most: if a whole class reports 2s and 3s there is no
+ * deviation to detect, and nobody gets flagged.
+ */
+export const CONCERN_RATING = 3;
+
+/** Someone below their class is only flagged if they are not already doing okay. */
+const RELATIVE_CEILING = 5;
+
+/** How far below the class mean counts as "notably below". */
+const RELATIVE_SIGMA = 1.5;
+
+/** A mean and spread are meaningless until a few students have responded. */
+const MIN_RESPONSES_FOR_RELATIVE = 3;
+
+/**
+ * Flags students who may need the instructor's attention, aligned by index with
+ * the ratings passed in.
+ *
+ * Deliberately one-sided: a student thriving at 10/10 is statistically unusual
+ * but is not a concern, and badging them buries the students who are.
+ */
+export function flagNeedsCheckIn(ratings: number[]): boolean[] {
+  const flags = ratings.map((rating) => rating <= CONCERN_RATING);
+
+  if (ratings.length >= MIN_RESPONSES_FOR_RELATIVE) {
+    const mean = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+    const stdDev = Math.sqrt(
+      ratings.reduce((sum, r) => sum + (r - mean) ** 2, 0) / ratings.length
+    );
+    const notablyBelow = mean - RELATIVE_SIGMA * stdDev;
+
+    ratings.forEach((rating, i) => {
+      if (rating <= RELATIVE_CEILING && rating < notablyBelow) flags[i] = true;
+    });
+  }
+
+  return flags;
+}
