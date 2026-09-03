@@ -29,3 +29,4 @@
 - [x] Remove the Manus platform scaffold (OAuth, storage, LLM, map, notifications, build plugins)
 - [x] Fix outlier flagging: low-side only, with an absolute floor so a uniformly struggling class is not missed
 - [x] Harden teacher auth: startup guard, signed 12h session tokens, token out of URLs
+- [x] Remove 43 unused shadcn/ui components — cut the CSS bundle 60% and dropped 31 dependencies

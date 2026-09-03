@@ -324,7 +324,21 @@ pnpm test
 
 Never point `DATABASE_URL` at the production database while running tests — the suite creates and deletes sessions and submissions.
 
-### 10.9 Updating Dependencies
+### 10.9 UI Components
+
+`client/src/components/ui/` holds only the ten shadcn/ui components the app actually renders: alert-dialog, badge, button, card, dialog, input, separator, slider, sonner, tooltip.
+
+The template originally shipped 53. The unused 43 were not free: Tailwind generates CSS by scanning source files rather than following the import graph, so their class names were compiled into the stylesheet served to every student. Removing them cut the CSS bundle by 60%.
+
+If you need another component later, add it back in one command — `components.json` is still configured:
+
+```bash
+npx shadcn@latest add table
+```
+
+Install its peer dependency if prompted, and Tailwind will pick up the new classes automatically.
+
+### 10.10 Updating Dependencies
 
 Run `pnpm update` locally to update packages to their latest compatible versions, test the application, and push to `main`. Key dependencies to keep an eye on include `socket.io` and `socket.io-client` (must be the same major version on both sides), `drizzle-orm` and `drizzle-kit` (must be compatible versions), and `emoji-mart`, `@emoji-mart/react`, and `@emoji-mart/data` (must all be from the same major release).
 
