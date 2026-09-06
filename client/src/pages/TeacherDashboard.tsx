@@ -32,6 +32,7 @@ import {
   Loader2,
   BarChart3,
   Link as LinkIcon,
+  Presentation,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import QRCode from "qrcode";
@@ -504,6 +505,18 @@ export default function TeacherDashboard() {
               >
                 <Copy className="h-4 w-4 mr-1" />
                 Copy Link
+              </Button>
+              {/* A real link rather than window.open, so it survives popup
+                  blockers and supports open-in-new-window from the context menu. */}
+              <Button variant="outline" size="sm" asChild>
+                <a
+                  href={`/present/${activeSessionCode}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Presentation className="h-4 w-4 mr-1" />
+                  Present
+                </a>
               </Button>
 
               <div className="flex-1" />
