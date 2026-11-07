@@ -48,13 +48,21 @@
   --color-nu-ink: oklch(0.245 0.016 274.2);       /* #1e2028  NU Cool Black */
   --color-nu-canvas: oklch(0.973 0.003 106.4);    /* #F6F6F4  NU Canvas */
   --color-nu-gold: oklch(0.623 0.084 76.3);       /* #A4804A  reserve for accents */
-  /* Scale endpoints, kept in sync with client/src/lib/scale.ts */
-  --color-surviving: oklch(0.596 0.197 25.5);     /* #dc3c3c */
-  --color-thriving: oklch(0.570 0.114 163.1);     /* #1e8c64 */
+  /* Scale endpoints — themed below so they stay legible on either background */
+  --color-surviving: var(--scale-1);
+  --color-thriving: var(--scale-5);
 }
 
 :root {
   --radius: 0.75rem;
+  color-scheme: light;
+  /* The 1–10 "surviving to thriving" ramp. Referenced by client/src/lib/scale.ts
+     as var(), so switching theme restyles every scale bar without re-rendering. */
+  --scale-1: #dc3c3c; /* 1–2  struggling */
+  --scale-2: #e68c32; /* 3–4 */
+  --scale-3: #c8b432; /* 5–6 */
+  --scale-4: #50aa50; /* 7–8 */
+  --scale-5: #1e8c64; /* 9–10 thriving */
   /* Northeastern red — reinforcing accent for actions, icons and focus */
   --primary: oklch(0.530 0.207 22.3);
   --primary-foreground: oklch(1 0 0);
@@ -90,6 +98,57 @@
   --sidebar-accent-foreground: oklch(0.245 0.016 274.2);
   --sidebar-border: oklch(0.907 0 0);
   --sidebar-ring: oklch(0.530 0.207 22.3);
+}
+
+/* ─── Dark theme ──────────────────────────────────────────────────────
+   Applied by ThemeContext adding .dark to <html>, which follows the
+   viewer's OS setting unless they override it.
+
+   Contrast against the dark background (#0D0E14), all WCAG AA or better:
+     foreground 16.7:1 · muted-foreground 7.8:1 · white on primary 4.8:1
+   The brand red is lifted from oklch(0.530) to oklch(0.575): any lighter
+   and white button text drops below AA, any darker and the button stops
+   separating from the page.                                             */
+.dark {
+  --primary: oklch(0.575 0.195 22.3);
+  --primary-foreground: oklch(1 0 0);
+  --background: oklch(0.165 0.012 274);
+  --foreground: oklch(0.950 0.004 106);
+  --card: oklch(0.215 0.013 274);
+  --card-foreground: oklch(0.950 0.004 106);
+  --popover: oklch(0.215 0.013 274);
+  --popover-foreground: oklch(0.950 0.004 106);
+  --secondary: oklch(0.270 0.012 274);
+  --secondary-foreground: oklch(0.950 0.004 106);
+  --muted: oklch(0.240 0.010 274);
+  --muted-foreground: oklch(0.720 0.010 280);
+  --accent: oklch(0.270 0.020 22.3);
+  --accent-foreground: oklch(0.950 0.004 106);
+  --destructive: oklch(0.560 0.190 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.300 0.012 274);
+  --input: oklch(0.300 0.012 274);
+  --ring: oklch(0.575 0.195 22.3);
+  --chart-1: oklch(0.575 0.195 22.3);
+  --chart-2: oklch(0.720 0.010 280);
+  --chart-3: oklch(0.720 0.090 76.3);
+  --chart-4: oklch(0.680 0.118 163.1);
+  --chart-5: oklch(0.720 0.090 76.3);
+  --sidebar: oklch(0.165 0.012 274);
+  --sidebar-foreground: oklch(0.950 0.004 106);
+  --sidebar-primary: oklch(0.575 0.195 22.3);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.270 0.020 22.3);
+  --sidebar-accent-foreground: oklch(0.950 0.004 106);
+  --sidebar-border: oklch(0.300 0.012 274);
+  --sidebar-ring: oklch(0.575 0.195 22.3);
+
+  color-scheme: dark;
+
+  /* Only the two ends of the ramp need lifting — the middle three already
+     clear AA on the dark background (7.7:1, 9.5:1, 6.8:1 as-is). */
+  --scale-1: #ee5954; /* was #dc3c3c — 4.4:1 was marginal, now 5.7:1 */
+  --scale-5: #45af83; /* was #1e8c64 — 4.6:1 was marginal, now 7.1:1 */
 }
 
 @layer base {

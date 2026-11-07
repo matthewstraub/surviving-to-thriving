@@ -87,7 +87,8 @@ describe("flagNeedsCheckIn — shape", () => {
 describe("scale colors and labels", () => {
   it("covers every rating on the 1-10 scale", () => {
     for (let r = 1; r <= 10; r++) {
-      expect(getScaleColor(r)).toMatch(/^#[0-9a-f]{6}$/i);
+      // Themed CSS variables rather than literals — see scale.ts
+      expect(getScaleColor(r)).toMatch(/^var\(--scale-[1-5]\)$/);
       expect(SCALE_LABELS[r]).toBeTruthy();
     }
   });

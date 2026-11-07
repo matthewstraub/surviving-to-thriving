@@ -6,16 +6,23 @@
  * brand changes. Keep it visually distinct from whatever the brand accent is.
  */
 
+/**
+ * These resolve to CSS custom properties defined in client/src/index.css, which
+ * carry a different value under `.dark`. Returning a var() reference rather than
+ * a literal means switching theme restyles every scale bar through CSS, with no
+ * React re-render and no theme argument threaded through the call sites.
+ */
+
 /** Low end of the scale — used for the "Surviving" label and ratings 1–2. */
-export const SCALE_SURVIVING = "#dc3c3c";
+export const SCALE_SURVIVING = "var(--scale-1)";
 /** High end of the scale — used for the "Thriving" label and ratings 9–10. */
-export const SCALE_THRIVING = "#1e8c64";
+export const SCALE_THRIVING = "var(--scale-5)";
 
 const SCALE_COLORS = [
   SCALE_SURVIVING, // 1–2   struggling
-  "#e68c32", // 3–4
-  "#c8b432", // 5–6
-  "#50aa50", // 7–8
+  "var(--scale-2)", // 3–4
+  "var(--scale-3)", // 5–6
+  "var(--scale-4)", // 7–8
   SCALE_THRIVING, // 9–10  thriving
 ] as const;
 
