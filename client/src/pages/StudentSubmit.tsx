@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ function EmojiPickerSection({
   selectedEmoji: string;
   onSelect: (emoji: string) => void;
 }) {
+  const { theme } = useTheme();
   const [showPicker, setShowPicker] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
 
@@ -102,7 +104,7 @@ function EmojiPickerSection({
                 <Picker
                   data={data}
                   onEmojiSelect={handleEmojiSelect}
-                  theme="light"
+                  theme={theme}
                   set="native"
                   previewPosition="none"
                   skinTonePosition="search"
