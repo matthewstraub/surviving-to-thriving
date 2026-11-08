@@ -175,7 +175,6 @@ CREATE TABLE IF NOT EXISTS `submissions` (
   `studentName` varchar(255) NOT NULL,
   `emoji` varchar(32) NOT NULL,
   `rating` int NOT NULL,
-  `ipAddress` varchar(64),
   `createdAt` timestamp NOT NULL DEFAULT (now()),
   CONSTRAINT `submissions_id` PRIMARY KEY(`id`)
 );

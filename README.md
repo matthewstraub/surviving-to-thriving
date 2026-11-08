@@ -92,7 +92,6 @@ Each student response is stored as a row in this table, linked to its parent ses
 | `studentName` | `varchar(255)` | The name the student entered |
 | `emoji` | `varchar(32)` | The emoji character the student selected |
 | `rating` | `int` | The 1–10 scale value |
-| `ipAddress` | `varchar(64)` | Client IP address captured at submission time |
 | `createdAt` | `timestamp` | When the submission was recorded |
 
 ## 5. Backend API Reference
@@ -306,7 +305,19 @@ DROP TABLE IF EXISTS users;
 
 This is irreversible, and it is not required — the app runs correctly either way.
 
-### 10.8 Local Development and Testing
+### 10.8 Dropping the Legacy `ipAddress` Column
+
+Submissions no longer record a client IP, and `ipAddress` is gone from `drizzle/schema.ts`. The column itself still exists in the database, where it is inert — nothing reads or writes it.
+
+To remove it, and the addresses already stored in it:
+
+```sql
+ALTER TABLE submissions DROP COLUMN ipAddress;
+```
+
+This is irreversible and deletes the historic addresses, which is the point. It is not required — the app runs correctly either way — but leaving it means continuing to hold participant data nothing uses.
+
+### 10.9 Local Development and Testing
 
 The app can run and be tested locally with **no database at all**. Set `USE_MEMORY_DB=1` and the server serves every query from an in-memory store (`server/memoryDb.ts`) pre-seeded with demo sessions and submissions:
 
@@ -324,7 +335,7 @@ pnpm test
 
 Never point `DATABASE_URL` at the production database while running tests — the suite creates and deletes sessions and submissions.
 
-### 10.9 UI Components
+### 10.10 UI Components
 
 `client/src/components/ui/` holds only the ten shadcn/ui components the app actually renders: alert-dialog, badge, button, card, dialog, input, separator, slider, sonner, tooltip.
 
@@ -338,7 +349,7 @@ npx shadcn@latest add table
 
 Install its peer dependency if prompted, and Tailwind will pick up the new classes automatically.
 
-### 10.10 Updating Dependencies
+### 10.11 Updating Dependencies
 
 Run `pnpm update` locally to update packages to their latest compatible versions, test the application, and push to `main`. Key dependencies to keep an eye on include `socket.io` and `socket.io-client` (must be the same major version on both sides), `drizzle-orm` and `drizzle-kit` (must be compatible versions), and `emoji-mart`, `@emoji-mart/react`, and `@emoji-mart/data` (must all be from the same major release).
 
@@ -370,7 +381,7 @@ The following table summarizes the typical workflow for using the app in a class
 
 **Student submissions** are public endpoints — anyone with the session link can submit, by design, since students should not need accounts. Session codes are random 8-character `nanoid` strings, impractical to guess.
 
-**Data.** IP addresses are recorded with each submission but never displayed. The database connection uses SSL as required by TiDB Cloud, and all browser traffic is HTTPS via Render's managed certificates.
+**Data.** Submissions store only what the dashboard displays: a name, an emoji, a rating and a timestamp. Client IP addresses are deliberately **not** collected — they were captured in earlier versions, never displayed, and removed rather than left as a liability on participant data. The database connection uses SSL as required by TiDB Cloud, and all browser traffic is HTTPS via Render's managed certificates.
 
 **Known limitations.** The shared password means there is no per-teacher identity or audit trail, which is appropriate for a single-instructor tool but would need rethinking for multiple instructors. There is no rate limiting on `teacher.login`.
 

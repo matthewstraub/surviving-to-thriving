@@ -112,7 +112,7 @@ export const appRouter = router({
           rating: z.number().int().min(1).max(10),
         })
       )
-      .mutation(async ({ input, ctx }) => {
+      .mutation(async ({ input }) => {
         const session = await getSessionByCode(input.sessionCode);
         if (!session) {
           throw new TRPCError({
@@ -127,18 +127,11 @@ export const appRouter = router({
           });
         }
 
-        // Get IP address
-        const ip =
-          (ctx.req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
-          ctx.req.socket?.remoteAddress ||
-          null;
-
         const submission = await addSubmission({
           sessionId: session.id,
           studentName: input.studentName,
           emoji: input.emoji,
           rating: input.rating,
-          ipAddress: ip,
         });
 
         // Emit via WebSocket

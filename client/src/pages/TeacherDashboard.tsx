@@ -44,7 +44,6 @@ type Submission = {
   studentName: string;
   emoji: string;
   rating: number;
-  ipAddress: string | null;
   createdAt: Date;
 };
 

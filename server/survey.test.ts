@@ -30,7 +30,6 @@ function createMockContext(overrides?: Partial<TrpcContext>): TrpcContext {
     req: {
       protocol: "https",
       headers: {},
-      socket: { remoteAddress: "127.0.0.1" },
     } as unknown as TrpcContext["req"],
     res: {
       clearCookie: vi.fn(),
