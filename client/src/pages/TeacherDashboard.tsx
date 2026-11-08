@@ -131,18 +131,24 @@ function SubmissionRow({
           )}
         </div>
         {/* Mini scale bar */}
-        <div className="mt-1.5 relative h-2 rounded-full overflow-hidden bg-muted">
+        <div className="mt-1.5 relative h-2 rounded-full bg-muted">
           <div
             className="absolute inset-0 rounded-full opacity-30"
             style={{ background: getScaleGradient() }}
           />
-          <motion.div
-            initial={{ left: "0%" }}
-            animate={{ left: `${positionPercent}%` }}
-            transition={{ type: "spring", damping: 20 }}
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full border-2 border-white shadow-md"
-            style={{ backgroundColor: getScaleColor(submission.rating) }}
-          />
+          {/* The marker travels inside a lane inset by half its own width, so a
+              1 or a 10 still renders a whole circle instead of a half one. The
+              track itself carries no overflow-hidden — the gradient above is
+              already rounded, and clipping here flattened the marker. */}
+          <div className="absolute inset-y-0 inset-x-[7px]">
+            <motion.div
+              initial={{ left: "0%" }}
+              animate={{ left: `${positionPercent}%` }}
+              transition={{ type: "spring", damping: 20 }}
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full border-2 border-card shadow-md"
+              style={{ backgroundColor: getScaleColor(submission.rating) }}
+            />
+          </div>
         </div>
       </div>
       <span
@@ -200,18 +206,21 @@ function StatsPanel({ submissions }: { submissions: Submission[] }) {
           </p>
           <p className="text-xs text-muted-foreground">Group Average</p>
           {stats.count > 0 && (
-            <div className="mt-2 relative h-2 rounded-full overflow-hidden bg-muted">
+            <div className="mt-2 relative h-2 rounded-full bg-muted">
               <div
                 className="absolute inset-0 rounded-full opacity-40"
                 style={{ background: getScaleGradient() }}
               />
-              <motion.div
-                initial={{ left: "50%" }}
-                animate={{ left: `${avgPositionPercent}%` }}
-                transition={{ type: "spring", damping: 15 }}
-                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 border-white shadow-lg"
-                style={{ backgroundColor: getScaleColor(Math.round(stats.avg)) }}
-              />
+              {/* Inset by half the marker's width — see the note on the row bar. */}
+              <div className="absolute inset-y-0 inset-x-[8px]">
+                <motion.div
+                  initial={{ left: "50%" }}
+                  animate={{ left: `${avgPositionPercent}%` }}
+                  transition={{ type: "spring", damping: 15 }}
+                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 border-card shadow-lg"
+                  style={{ backgroundColor: getScaleColor(Math.round(stats.avg)) }}
+                />
+              </div>
             </div>
           )}
         </CardContent>
