@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { AlertTriangle, Loader2, Maximize, Minimize } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
+import {
+  AlertTriangle,
+  Loader2,
+  Maximize,
+  Minimize,
+  Monitor,
+  Moon,
+  Sun,
+} from "lucide-react";
 import QRCode from "qrcode";
 
 /**
@@ -16,6 +25,7 @@ export default function PresentSession() {
   const params = useParams<{ code: string }>();
   const code = params.code || "";
 
+  const { preference, setPreference } = useTheme();
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -44,6 +54,19 @@ export default function PresentSession() {
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
+
+  /**
+   * Room lighting has nothing to do with the facilitator's OS setting — a dark
+   * room wants dark, a sunlit one wants light. Cycling through "system" means
+   * there is always a way back to following the machine again.
+   */
+  const THEME_CYCLE = {
+    system: { next: "light", Icon: Monitor, label: "Following your system theme" },
+    light: { next: "dark", Icon: Sun, label: "Light, regardless of your system" },
+    dark: { next: "system", Icon: Moon, label: "Dark, regardless of your system" },
+  } as const;
+
+  const currentTheme = THEME_CYCLE[preference];
 
   const toggleFullscreen = () => {
     if (document.fullscreenElement) {
@@ -84,17 +107,27 @@ export default function PresentSession() {
         <h1 className="text-center font-serif font-bold tracking-tight text-[clamp(1.75rem,5vh,3.5rem)]">
           Surviving to Thriving
         </h1>
-        <button
-          onClick={toggleFullscreen}
-          aria-label={isFullscreen ? "Exit full screen" : "Enter full screen"}
-          className="absolute top-1/2 -translate-y-1/2 right-6 p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-        >
-          {isFullscreen ? (
-            <Minimize className="h-5 w-5" />
-          ) : (
-            <Maximize className="h-5 w-5" />
-          )}
-        </button>
+        <div className="absolute top-1/2 -translate-y-1/2 right-6 flex items-center gap-1">
+          <button
+            onClick={() => setPreference(currentTheme.next)}
+            title={`${currentTheme.label} — click to change`}
+            aria-label={`${currentTheme.label}. Switch to ${currentTheme.next}.`}
+            className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <currentTheme.Icon className="h-5 w-5" />
+          </button>
+          <button
+            onClick={toggleFullscreen}
+            aria-label={isFullscreen ? "Exit full screen" : "Enter full screen"}
+            className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            {isFullscreen ? (
+              <Minimize className="h-5 w-5" />
+            ) : (
+              <Maximize className="h-5 w-5" />
+            )}
+          </button>
+        </div>
       </header>
 
       {/* QR code */}
