@@ -100,14 +100,14 @@ Render deploys from a Git repository. If you have not already, push the project 
 | **Region** | Choose one close to your TiDB cluster |
 | **Runtime** | `Node` |
 | **Build Command** | `corepack enable && pnpm install && pnpm build` |
+| **Start Command** | `pnpm start` |
+| **Instance Type** | **Free** |
 
 > The build command previously read `npm install -g pnpm && …`, which installs whatever
 > pnpm is latest and ignores the `packageManager` pin in `package.json`. Using `corepack enable`
 > makes the deploy use the exact pinned version instead, so builds are reproducible and pick up
 > pnpm security fixes deliberately rather than by accident. The old command still works — this
 > change is made in the Render dashboard, not in the repository.
-| **Start Command** | `pnpm start` |
-| **Instance Type** | **Free** |
 
 ### 3.3 Set Environment Variables
 
@@ -228,7 +228,7 @@ If you want a cleaner URL (e.g., `checkin.yourdomain.com`), you can add a custom
 
 | Problem | Solution |
 |---------|----------|
-| Build fails with "pnpm not found" | Make sure the build command starts with `npm install -g pnpm &&` |
+| Build fails with "pnpm not found" | Make sure the build command starts with `corepack enable &&`. Avoid `npm install -g pnpm`, which ignores the `packageManager` pin and installs an arbitrary version |
 | Database connection error | Verify `DATABASE_URL` is correct and includes the SSL parameter |
 | App loads but shows blank page | Check that `NODE_ENV=production` is set in environment variables |
 | WebSocket not connecting | Ensure your Render service URL uses `https://` (Render provides this by default) |
