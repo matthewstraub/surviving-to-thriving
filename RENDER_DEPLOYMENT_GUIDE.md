@@ -99,7 +99,13 @@ Render deploys from a Git repository. If you have not already, push the project 
 | **Name** | `surviving-to-thriving` (or any name you prefer) |
 | **Region** | Choose one close to your TiDB cluster |
 | **Runtime** | `Node` |
-| **Build Command** | `npm install -g pnpm && pnpm install && pnpm build` |
+| **Build Command** | `corepack enable && pnpm install && pnpm build` |
+
+> The build command previously read `npm install -g pnpm && …`, which installs whatever
+> pnpm is latest and ignores the `packageManager` pin in `package.json`. Using `corepack enable`
+> makes the deploy use the exact pinned version instead, so builds are reproducible and pick up
+> pnpm security fixes deliberately rather than by accident. The old command still works — this
+> change is made in the Render dashboard, not in the repository.
 | **Start Command** | `pnpm start` |
 | **Instance Type** | **Free** |
 
