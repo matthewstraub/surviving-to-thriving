@@ -94,7 +94,6 @@ export async function addSubmission(
     studentName: data.studentName,
     emoji: data.emoji,
     rating: data.rating,
-    ipAddress: data.ipAddress ?? null,
     createdAt: data.createdAt ?? new Date(),
   };
   store.submissions.push(row);
@@ -140,7 +139,6 @@ export async function seedMemoryDb(): Promise<void> {
       studentName,
       emoji,
       rating,
-      ipAddress: "127.0.0.1",
     });
   }
 }

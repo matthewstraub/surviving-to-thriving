@@ -22,7 +22,6 @@ export const submissions = mysqlTable("submissions", {
   studentName: varchar("studentName", { length: 255 }).notNull(),
   emoji: varchar("emoji", { length: 32 }).notNull(),
   rating: int("rating").notNull(),
-  ipAddress: varchar("ipAddress", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
